@@ -30,8 +30,8 @@ Crie um arquivo `.env` na raiz do projeto:
 
 ```bash
 # Obrigatório
-GUARA_BASE_URL=http://164.152.56.41:81/v1
-GUARAV2_2506_TOKEN=your_token_here
+GUARA_BASE_URL=
+GUARAV2_2506_TOKEN=
 
 # Opcional
 GRPC_SERVER_PORT=50051
@@ -74,44 +74,6 @@ message TranscriptionResponse {
 ```
 
 **Modelo Suportado**: `widelabs/guara-v2-2506`
-
-## Exemplo de Cliente (Go)
-
-```go
-package main
-
-import (
-    "context"
-    "log"
-    "google.golang.org/grpc"
-    "google.golang.org/grpc/credentials/insecure"
-    pb "your-project/pb"
-)
-
-func main() {
-    conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
-    if err != nil {
-        log.Fatalf("Falha ao conectar: %v", err)
-    }
-    defer conn.Close()
-
-    client := pb.NewSpeechServiceClient(conn)
-
-    request := &pb.TranscriptionRequest{
-        AudioPath: "/path/to/audio.wav",
-        Model:     "widelabs/guara-v2-2506",
-        Language:  "pt",
-    }
-
-    response, err := client.Transcribe(context.Background(), request)
-    if err != nil {
-        log.Fatalf("Transcrição falhou: %v", err)
-    }
-
-    log.Printf("Texto: %s", response.Text)
-    log.Printf("Tokens: %d total", response.TotalTokens)
-}
-```
 
 ## Códigos de Status
 
