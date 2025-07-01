@@ -1,0 +1,21 @@
+syntax = "proto3";
+package pb;
+
+message TranscriptionRequest {
+    string audio_path = 1;
+    string model = 2;
+    optional string prompt = 3;
+    optional string language = 4;
+}
+
+message TranscriptionResponse {
+    string text = 1;
+    float duration = 2;
+    int32 prompt_tokens = 3;
+    int32 completion_tokens = 4;
+    int32 total_tokens = 5;
+}
+
+service SpeechService {
+    rpc transcribe(TranscriptionRequest) returns (TranscriptionResponse);
+}

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package health;
+
+message Blank {}
+
+message HealthResponse {
+    int32 code = 1;
+}
+
+service HealthService {
+	rpc isOk(Blank) returns (HealthResponse) {}
+}
