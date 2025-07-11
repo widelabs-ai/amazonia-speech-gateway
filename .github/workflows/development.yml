@@ -1,0 +1,60 @@
+name: Deploy speech gateway service HML
+on:
+  push:
+    branches:
+      - development
+jobs:
+  build:  
+    runs-on: ubuntu-latest 
+    name: Install Kubectl for OKE 
+    env: 
+      OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+      OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+      OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+      OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+      OCI_CLI_REGION: ${{ secrets.OCI_CLI_REGION }}
+      
+    steps:      
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Py
+      uses: actions/setup-python@v5
+      with:
+       python-version: '3.10' 
+
+    - name: Remove unnecessary files
+      run: sudo rm -rf /usr/share/dotnet && sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Setup Kubectl
+      uses: oracle-actions/configure-kubectl-oke@v1.5.0
+      id: test-configure-kubectl-oke-action
+      with:
+        cluster: ${{ secrets.OKE_CLUSTER_OCID_HML }}
+        
+    - name: Login into Registry
+      run: docker login -u ${{secrets.REGISTRY_USER}} -p ${{secrets.REGISTRY_PASS}} gru.ocir.io
+            
+    - name: Build and Push
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: true
+        tags: gru.ocir.io/${{SECRETS.NAMESPACE}}/amazonia-hml-speech-gateway:${{ github.run_number }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+      
+    - name: Run Kubectl
+      env:
+        KUBE_DEPLOYMENT: 'amazonia-hml-speech-gateway'
+        KUBE_IMAGE: 'amazonia-hml-speech-gateway'
+        KUBE_NAMESPACE: 'amazonia-hml'
+      run: | 
+       kubectl set image deployment/$KUBE_DEPLOYMENT $KUBE_IMAGE=gru.ocir.io/${{SECRETS.NAMESPACE}}/$KUBE_IMAGE:${{ github.run_number }} -n $KUBE_NAMESPACE
