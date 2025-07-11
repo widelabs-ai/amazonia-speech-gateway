@@ -29,7 +29,7 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 
 # Instalar dependências do Python
-RUN poetry install --only=main && rm -rf $POETRY_CACHE_DIR
+RUN poetry install --only=main --no-root && rm -rf $POETRY_CACHE_DIR
 
 # Copiar o código fonte
 COPY . .
