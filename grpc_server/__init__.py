@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import logging
 import grpc
 from concurrent import futures
 import grpc_server.pb.speech_pb2 as speech_pb2
@@ -23,6 +24,17 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.sdk.resources import Resource
 from core.settings import settings
 from grpc_server.services import SpeechService, HealthService
+
+# Configurar logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 
 trace.set_tracer_provider(
@@ -64,11 +76,11 @@ async def bootstrap() -> None:
     port = "0.0.0.0:50051"
     server.add_insecure_port(port)
     await server.start()
-    print(f"AmazônIA - SPEECH GATEWAY gRPC: server listening on {port}")
+    logger.info(f"AmazônIA - SPEECH GATEWAY gRPC: server listening on {port}")
     try:
         await server.wait_for_termination()
     except asyncio.CancelledError:
-        print("Shutting down...")
+        logger.info("Shutting down...")
         server.stop(None)
         await server.wait_for_termination()
 
@@ -77,4 +89,4 @@ def run() -> None:
     try:
         asyncio.run(bootstrap())
     except KeyboardInterrupt:
-        print("Received keyboardInterrupt, shutting down gracefully ...")
+        logger.info("Received keyboardInterrupt, shutting down gracefully ...")
