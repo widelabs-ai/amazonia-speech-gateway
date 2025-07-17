@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  amazonia-speech-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: amazonia-speech-gateway
+    ports:
+      - "50051:50051"
+    environment:
+      # Configurações do Guará
+      - GUARAV2_2506_TOKEN=${GUARAV2_2506_TOKEN}
+      - GUARA_BASE_URL=${GUARA_BASE_URL:-http://164.152.56.41:81/v1}
+      
+      # Configurações de telemetria
+      - OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME:-amazonia-speech-gateway}
+      - OTEL_SDK_DISABLED=${OTEL_SDK_DISABLED:-false}
+      
+      # Configurações do Oracle Object Storage
+      - ORACLE_S3_ACCESS_KEY_ID=${ORACLE_S3_ACCESS_KEY_ID}
+      - ORACLE_S3_SECRET=${ORACLE_S3_SECRET}
+      - ORACLE_S3_BUCKET=${ORACLE_S3_BUCKET}
+      - ORACLE_S3_ENDPOINT=${ORACLE_S3_ENDPOINT}
+      - ORACLE_S3_REGION=${ORACLE_S3_REGION}
+      
+      # Configurações do Oracle SDK
+      - ORACLE_PROFILE_NAME=${ORACLE_PROFILE_NAME:-DEFAULTS}
+    volumes:
+      # Opcional: montar um volume para logs
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import grpc; import grpc_server.pb.health_pb2_grpc as health_grpc; import grpc_server.pb.health_pb2 as health_pb2; channel = grpc.insecure_channel('localhost:50051'); stub = health_grpc.HealthServiceStub(channel); response = stub.Check(health_pb2.HealthCheckRequest()); print('Health check passed' if response.status == health_pb2.HealthCheckResponse.SERVING else 'Health check failed')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  default:
+    name: amazonia-speech-network

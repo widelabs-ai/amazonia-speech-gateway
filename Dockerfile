@@ -20,7 +20,7 @@ RUN pip install poetry
 # Configurar Poetry para não criar ambiente virtual (já estamos no container)
 ENV POETRY_NO_INTERACTION=1 \
     POETRY_VENV_IN_PROJECT=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
+    POETRY_VIRTUALENVS_CREATE=false
 
 # Definir diretório de trabalho
 WORKDIR /app
@@ -29,7 +29,7 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 
 # Instalar dependências do Python
-RUN poetry install --only=main && rm -rf $POETRY_CACHE_DIR
+RUN poetry install --only=main --no-root
 
 # Copiar o código fonte
 COPY . .
@@ -47,4 +47,4 @@ RUN useradd --create-home --shell /bin/bash app && \
 USER app
 
 # Comando para executar a aplicação
-CMD ["poetry", "run", "python", "-m", "grpc_server"]
+CMD ["python", "-m", "grpc_server"]
